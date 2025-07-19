@@ -1,38 +1,47 @@
 import React, { useState } from 'react';
-import { FaPlay } from 'react-icons/fa';
+import { FaPlay, FaTimes } from 'react-icons/fa';
 import nightSkyline from '../../assets/night-skyline.jpg';
+import Select from 'react-select';
 
 const vibes = ['Food', 'Culture', 'Shopping', 'Nightlife', 'Outdoors'];
 const groupTypes = ['Solo', 'Couple', 'Family', 'Friends'];
 const budgets = ['Budget', 'Mid-range', 'Luxury'];
-const durations = ['1-2 days', '3-5 days', '1 week', '2+ weeks'];
+
+const vibeOptions = vibes.map(v => ({ value: v, label: v }));
+
+type VibeOption = { value: string; label: string };
 
 const HeroSection: React.FC = () => {
-  const [tripDuration, setTripDuration] = useState('');
-  const [travelVibe, setTravelVibe] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [travelVibe, setTravelVibe] = useState<VibeOption[]>([]);
   const [groupType, setGroupType] = useState('');
   const [budget, setBudget] = useState('');
 
-  const handleVibeToggle = (vibe: string) => {
-    setTravelVibe((prev) =>
-      prev.includes(vibe) ? prev.filter((v) => v !== vibe) : [...prev, vibe]
-    );
-  };
-
-  const handleReset = () => {
-    setTripDuration('');
-    setTravelVibe([]);
-    setGroupType('');
-    setBudget('');
+  const handleClearDates = () => {
+    setStartDate('');
+    setEndDate('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { tripDuration, travelVibe, groupType, budget };
+    const data = {
+      tripDuration: {
+        startDate: startDate || null,
+        endDate: endDate || null,
+      },
+      travelVibe: travelVibe.map(v => v.value),
+      groupType,
+      budget
+    };
     localStorage.setItem('nycTourOnboarding', JSON.stringify(data));
-    // TODO: Firebase anon auth + plan ID
-    // TODO: Redirect to planner or next step
     alert('Onboarding data saved! (MVP)');
+    // Clear all fields after submission
+    setStartDate('');
+    setEndDate('');
+    setTravelVibe([]);
+    setGroupType('');
+    setBudget('');
   };
 
   return (
@@ -56,36 +65,52 @@ const HeroSection: React.FC = () => {
         </p>
       {/* Foreground Form */}
         <div className='bg-[rgba(255,255,255,0.7)] border border-gray-300 px-10 py-6 mt-8 md:mt-0 max-w-2xl mx-auto'>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-6 w-full">
-          <div className="flex flex-col w-full">
-            <label className="text-gray-800 font-semibold uppercase text-xs tracking-wide">Trip Duration</label>
-            <select
-              className="border border-yellow-400 bg-white text-gray-900 rounded px-2 py-1 focus:outline-none focus:ring focus:ring-yellow-400 text-sm w-full"
-              value={tripDuration}
-              onChange={e => setTripDuration(e.target.value)}
-              required
-            >
-              <option value="" disabled>Select duration</option>
-              {durations.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6 w-full">
+          <div className="flex flex-col w-full relative min-w-0">
+            <label className="text-gray-800 font-semibold uppercase text-xs tracking-wide mb-1">Trip Duration</label>
+            <div className="flex flex-col gap-2 md:flex-row md:gap-2 items-stretch w-full">
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-xs text-gray-600 mb-0.5">Start Date</span>
+                <input
+                  type="date"
+                  className="border border-yellow-400 bg-white text-gray-900 rounded px-2 py-1 focus:outline-none focus:ring focus:ring-yellow-400 text-sm w-full"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  max={endDate || undefined}
+                />
+              </div>
+              <span className="hidden md:inline mx-1 text-gray-700 font-bold self-center">→</span>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-xs text-gray-600 mb-0.5">End Date</span>
+                <input
+                  type="date"
+                  className="border border-yellow-400 bg-white text-gray-900 rounded px-2 py-1 focus:outline-none focus:ring focus:ring-yellow-400 text-sm w-full"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                  min={startDate || undefined}
+                  disabled={!startDate}
+                />
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col w-full">
-            <label className="text-gray-800 font-semibold uppercase text-xs tracking-wide">Travel Vibe</label>
-            <select
-              className="border border-yellow-400 bg-white text-gray-900 rounded px-2 py-1 focus:outline-none focus:ring focus:ring-yellow-400 text-sm w-full"
+          <div className="flex flex-col w-full min-w-0">
+            <label className="text-gray-800 font-semibold uppercase text-xs tracking-wide mb-1">Travel Vibe</label>
+            <Select
+              isMulti
+              options={vibeOptions}
               value={travelVibe}
-              onChange={e => {
-                const selected = Array.from(e.target.selectedOptions, option => option.value);
-                setTravelVibe(selected);
+              onChange={selected => setTravelVibe(selected as VibeOption[])}
+              classNamePrefix="react-select"
+              placeholder="Select vibe(s)"
+              styles={{
+                control: (base) => ({ ...base, minHeight: '2.5em', borderColor: '#facc15', boxShadow: 'none' }),
+                multiValue: (base) => ({ ...base, backgroundColor: '#fde68a', color: '#181A1B' }),
+                multiValueLabel: (base) => ({ ...base, color: '#181A1B', fontWeight: 600 }),
+                multiValueRemove: (base) => ({ ...base, color: '#b45309', ':hover': { backgroundColor: '#fbbf24', color: '#181A1B' } }),
+                option: (base, state) => ({ ...base, color: state.isSelected ? '#181A1B' : '#92400e', backgroundColor: state.isSelected ? '#fde68a' : 'white' }),
               }}
               required
-              style={{ minHeight: '2.5em' }}
-            >
-              <option value="" disabled>Select vibe(s)</option>
-              {vibes.map(vibe => (
-                <option key={vibe} value={vibe}>{vibe}</option>
-              ))}
-            </select>
+            />
           </div>
           <div className="flex flex-col w-full">
             <label className="text-gray-800 font-semibold uppercase text-xs tracking-wide">Group Type</label>

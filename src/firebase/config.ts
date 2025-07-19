@@ -1,13 +1,16 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 // TODO: Replace with your Firebase project config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBDV2ID-9Nv0NHS6q3vYktL5Tciea8J-SE",
+  authDomain: "nyc-tour-copilot.firebaseapp.com",
+  projectId: "nyc-tour-copilot",
+  storageBucket: "nyc-tour-copilot.firebasestorage.app",
+  messagingSenderId: "410878751200",
+  appId: "1:410878751200:web:9d73fe9db278747e49bb85"
+
 };
 
-export const app = initializeApp(firebaseConfig); 
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app); 
