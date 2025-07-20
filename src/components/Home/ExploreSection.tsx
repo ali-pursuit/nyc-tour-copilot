@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaArrowRight } from 'react-icons/fa';
+import Button from '../Button';
 
 const locations = [
   {
@@ -91,9 +92,12 @@ const ExploreSection: React.FC = () => (
 
       {/* Call to Action */}
       <div className="text-center mt-8">
-        <button className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm">
+        <Button 
+          variant="primary" 
+          size="md"
+        >
           Explore All Locations →
-        </button>
+        </Button>
       </div>
     </div>
   </section>

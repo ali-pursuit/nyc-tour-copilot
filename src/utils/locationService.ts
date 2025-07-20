@@ -97,5 +97,19 @@ export const locationService = {
     }
 
     return this.getLocationsByTag(tag);
+  },
+
+  // Get top N locations by category (document id)
+  async getTopLocationsByCategory(category: string, topN: number = 3): Promise<Location[]> {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'locations'));
+      const docMatch = querySnapshot.docs.find(doc => doc.id === category);
+      if (!docMatch) return [];
+      const locations = (docMatch.data().locations || []) as Location[];
+      return locations.sort((a, b) => b.rating - a.rating).slice(0, topN);
+    } catch (error) {
+      console.error(`Error fetching top locations in category ${category}:`, error);
+      return [];
+    }
   }
 }; 

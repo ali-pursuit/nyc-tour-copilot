@@ -4,6 +4,8 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnony
 import { auth } from '../../firebase/config';
 import { getFirestore, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import Button from '../Button';
+
 const db = getFirestore();
 
 interface AuthModalProps {
@@ -92,13 +94,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         onClick={handleModalClick}
       >
         {/* Close Button */}
-        <button
+        <Button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+          variant="ghost"
+          size="sm"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
           aria-label="Close"
         >
           <FaTimes className="text-lg" />
-        </button>
+        </Button>
 
         {/* Header */}
         <div className="text-center mb-6">
@@ -129,7 +133,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   placeholder="First Name"
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
                   disabled={loading}
@@ -141,7 +145,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   placeholder="Last Name"
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
                   value={lastName}
                   onChange={e => setLastName(e.target.value)}
                   disabled={loading}
@@ -156,7 +160,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <input
               type="email"
               placeholder="Email address"
-              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
               value={email}
               onChange={e => setEmail(e.target.value)}
               autoFocus
@@ -170,7 +174,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <input
               type="password"
               placeholder="Password"
-              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
               value={password}
               onChange={e => setPassword(e.target.value)}
               disabled={loading}
@@ -184,23 +188,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-semibold py-2 px-4 hover:from-yellow-300 hover:to-orange-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:opacity-60 disabled:transform-none text-sm"
+            variant="primary"
+            size="md"
+            fullWidth
+            loading={loading}
+            icon={mode === 'login' ? FaSignInAlt : FaUserPlus}
+            iconPosition="left"
             disabled={loading}
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                {mode === 'login' ? 'Signing In...' : 'Creating Account...'}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center">
-                {mode === 'login' ? <FaSignInAlt className="mr-2 text-sm" /> : <FaUserPlus className="mr-2 text-sm" />}
-                {mode === 'login' ? 'Sign In' : 'Create Account'}
-              </div>
-            )}
-          </button>
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
+          </Button>
         </form>
 
         {/* Divider */}
@@ -214,40 +213,45 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Guest Sign In */}
-        <button
+        <Button
           onClick={handleAnonymous}
-          className="w-full bg-gray-100 text-gray-700 rounded-lg font-semibold py-2 px-4 hover:bg-gray-200 transition-colors duration-200 border border-gray-200 disabled:opacity-60 text-sm"
+          variant="outline"
+          size="md"
+          fullWidth
+          icon={FaUserSecret}
+          iconPosition="left"
           disabled={loading}
         >
-          <div className="flex items-center justify-center">
-            <FaUserSecret className="mr-2 text-sm" />
-            {loading ? 'Please wait...' : 'Continue as Guest'}
-          </div>
-        </button>
+          {loading ? 'Please wait...' : 'Continue as Guest'}
+        </Button>
 
         {/* Toggle Mode */}
         <div className="mt-4 text-center text-xs">
           {mode === 'login' ? (
             <>
               <span className="text-gray-600">Don't have an account? </span>
-              <button
-                className="text-yellow-600 hover:text-yellow-700 font-semibold transition-colors duration-200"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-yellow-600 hover:text-yellow-700 font-semibold p-0 h-auto"
                 onClick={() => setMode('register')}
                 disabled={loading}
               >
                 Sign up
-              </button>
+              </Button>
             </>
           ) : (
             <>
               <span className="text-gray-600">Already have an account? </span>
-              <button
-                className="text-yellow-600 hover:text-yellow-700 font-semibold transition-colors duration-200"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-yellow-600 hover:text-yellow-700 font-semibold p-0 h-auto"
                 onClick={() => setMode('login')}
                 disabled={loading}
               >
                 Sign in
-              </button>
+              </Button>
             </>
           )}
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaStar, FaCheckCircle, FaHeart, FaMapMarkerAlt, FaEdit, FaUser, FaCalendar, FaTrophy } from 'react-icons/fa';
+import Button from '../components/Button';
 
 interface Place {
   id: string;
@@ -77,10 +78,14 @@ const Profile: React.FC = () => {
                 Track your NYC adventures and discover your travel patterns
               </p>
             </div>
-            <button className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors duration-200 flex items-center text-sm">
-              <FaEdit className="mr-2 text-xs" />
+            <Button 
+              variant="primary" 
+              size="md"
+              icon={FaEdit}
+              iconPosition="left"
+            >
               Edit Profile
-            </button>
+            </Button>
           </div>
         </div>
       </div>

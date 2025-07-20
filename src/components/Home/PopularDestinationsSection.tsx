@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FaStar, FaMapMarkerAlt, FaFire, FaFilter } from 'react-icons/fa';
+import Button from '../Button';
+import { useNavigate } from 'react-router-dom';
 
 interface Destination {
   id: string;
@@ -86,6 +88,7 @@ const categories = ['All', 'Food', 'Parks', 'Culture', 'History', 'Entertainment
 
 const PopularDestinationsSection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const navigate = useNavigate();
 
   const filteredDestinations = selectedCategory === 'All' 
     ? destinations 
@@ -106,18 +109,16 @@ const PopularDestinationsSection: React.FC = () => {
         {/* Category Filters */}
         <div className="flex flex-wrap justify-center gap-2 mb-6">
           {categories.map((category) => (
-            <button
+            <Button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-3 py-1.5 rounded-full font-medium transition-all duration-200 text-sm ${
-                selectedCategory === category
-                  ? 'bg-yellow-400 text-gray-900 shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
+              variant={selectedCategory === category ? "primary" : "outline"}
+              size="sm"
+              icon={FaFilter}
+              iconPosition="left"
             >
-              <FaFilter className="inline mr-1 text-xs" />
               {category}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -182,9 +183,13 @@ const PopularDestinationsSection: React.FC = () => {
 
         {/* Show More Button */}
         <div className="text-center mt-8">
-          <button className="bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm">
+          <Button 
+            variant="secondary" 
+            size="md"
+            onClick={() => navigate('/explore')}
+          >
             Explore More Destinations →
-          </button>
+          </Button>
         </div>
       </div>
     </section>

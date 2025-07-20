@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaMapMarkerAlt, FaSearch, FaFilter, FaStar, FaHeart } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaHeart, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
+import Button from '../components/Button';
 
 interface Location {
   id: string;
@@ -120,25 +121,23 @@ const Explore: React.FC = () => {
               placeholder="Search locations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
             />
           </div>
 
           {/* Category Filters */}
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
-              <button
+              <Button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1.5 rounded-full font-medium transition-all duration-200 text-sm ${
-                  selectedCategory === category
-                    ? 'bg-yellow-400 text-gray-900 shadow-lg'
-                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}
+                variant={selectedCategory === category ? "primary" : "outline"}
+                size="sm"
+                icon={FaFilter}
+                iconPosition="left"
               >
-                <FaFilter className="inline mr-1 text-xs" />
                 {category}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -172,9 +171,14 @@ const Explore: React.FC = () => {
                 </div>
                 
                 {/* Favorite Button */}
-                <button className="absolute top-2 left-2 bg-white bg-opacity-90 text-gray-600 p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200">
-                  <FaHeart className="text-xs" />
-                </button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  icon={FaHeart}
+                  className="absolute top-2 left-2 bg-white bg-opacity-90 text-gray-600 hover:bg-red-500 hover:text-white p-1.5 rounded-full"
+                >
+                  {''}
+                </Button>
               </div>
 
               {/* Content */}
@@ -223,15 +227,16 @@ const Explore: React.FC = () => {
         {filteredLocations.length === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-500 text-base">No locations found matching your criteria.</p>
-            <button
+            <Button
               onClick={() => {
                 setSelectedCategory('All');
                 setSearchQuery('');
               }}
-              className="mt-3 bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors duration-200 text-sm"
+              variant="primary"
+              size="md"
             >
               Clear Filters
-            </button>
+            </Button>
           </div>
         )}
       </div>
