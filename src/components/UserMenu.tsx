@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { FaUser, FaSignOutAlt, FaMapMarkedAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 const UserMenu: React.FC = () => {
   const { user, signOutUser } = useAuth();
@@ -49,7 +49,7 @@ const UserMenu: React.FC = () => {
         >
           {/* Welcome note */}
           <div className="px-4 pt-3 pb-2 border-b border-gray-100 text-xs text-gray-500 font-medium">
-            { user ? `Welcome, ${user.firstName} ${user.lastName}!` : 'Welcome User'}
+            { user ? `Welcome, ${user.displayName}!` : 'Welcome User'}
           </div>
           <button
             className="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-yellow-50 text-gray-800 font-medium text-sm cursor-pointer transition-colors duration-150"

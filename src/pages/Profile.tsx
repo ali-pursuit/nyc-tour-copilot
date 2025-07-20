@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaStar, FaCheckCircle, FaHeart, FaMapMarkerAlt, FaEdit, FaUser, FaCalendar, FaTrophy } from 'react-icons/fa';
+import { FaStar, FaCheckCircle, FaHeart, FaEdit, FaUser, FaCalendar, FaTrophy } from 'react-icons/fa';
 import Button from '../components/Button';
 
 interface Place {
@@ -119,7 +119,7 @@ const Profile: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'overview' | 'favorites' | 'visited')}
                   className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center ${
                     activeTab === tab.id
                       ? 'border-yellow-400 text-yellow-600'

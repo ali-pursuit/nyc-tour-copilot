@@ -5,8 +5,8 @@ import Select from 'react-select';
 import Button from '../Button';
 import { locationService } from '../../utils/locationService';
 import type { Location } from '../../data/nycLocations';
-import { useAuth } from '../../context/AuthContext';
-import { getFirestore, collection, setDoc, doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../../context/useAuth';
+import { getFirestore, setDoc, doc, getDoc } from 'firebase/firestore';
 import { useRef, useEffect } from 'react';
 
 const vibes = ['Food', 'Culture', 'Shopping', 'Nightlife', 'Outdoors'];
@@ -30,15 +30,13 @@ const HeroSection: React.FC = () => {
   const detailsModalRef = useRef<HTMLDivElement>(null);
   const { user, openAuthModal } = useAuth();
   const db = getFirestore();
-  const [alreadySaved, setAlreadySaved] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
   // Handlers
 
-  const handleClickPick = (loc) => {
+  const handleClickPick = (loc: Location) => {
     setSelectedLocation(loc);
     setShowModal(true);
-    setAlreadySaved(false);
     setStatusMessage('');
     setShowStatusModal(false);
   }
@@ -54,16 +52,14 @@ const HeroSection: React.FC = () => {
         const planDocRef = doc(db, `users/${user.uid}/plans`, selectedLocation.id);
         const planSnap = await getDoc(planDocRef);
         if (planSnap.exists()) {
-          setAlreadySaved(true);
           setStatusMessage(() => 'Plan Already Exits');
           setShowStatusModal(true);
           return;
         }
-        setAlreadySaved(false);
         await setDoc(planDocRef, { ...selectedLocation, id: selectedLocation.id }, { merge: true });
         setStatusMessage(() => 'Successfully Added');
         setShowStatusModal(true);
-      } catch (err) {
+      } catch {
         setStatusMessage('Failed to add the plan.');
         setShowStatusModal(true);
       }
@@ -82,11 +78,6 @@ const HeroSection: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showModal]);
-
-  const handleClearDates = () => {
-    setStartDate('');
-    setEndDate('');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

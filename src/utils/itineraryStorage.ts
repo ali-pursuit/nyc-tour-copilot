@@ -5,7 +5,7 @@ const LOCAL_KEY = 'nycTourItineraries';
 export interface Itinerary {
   id: string;
   createdAt: number;
-  data: any; // Replace 'any' with your itinerary data structure
+  data: unknown; // Replace 'any' with your itinerary data structure
 }
 
 export function getGuestItineraries(): Itinerary[] {

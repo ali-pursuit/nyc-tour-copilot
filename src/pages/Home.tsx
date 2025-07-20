@@ -12,13 +12,13 @@ import Button from '../components/Button';
 import { FaTimes } from 'react-icons/fa';
 
 const Home: React.FC = () => {
-  const [results, setResults] = useState<Location[]>([]);
+  const [results] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   return (
     <div className="w-full min-h-screen">
-      <HeroSection onResults={setResults} />
+      <HeroSection />
 
       {/* Results Section below Hero */}
       {results.length > 0 && (

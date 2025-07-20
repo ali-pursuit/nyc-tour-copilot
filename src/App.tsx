@@ -1,21 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Explore from './pages/Explore';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AuthModal from './components/Auth/AuthModal';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { FaMapMarkedAlt, FaUser, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
+import { FaMapMarkedAlt, FaSignInAlt } from 'react-icons/fa';
 import Button from './components/Button';
 import { useRef, useState, useEffect } from 'react';
 import UserMenu from './components/UserMenu';
 
 const Header: React.FC = () => {
-  const { user, openAuthModal, signOutUser } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!menuOpen) return;

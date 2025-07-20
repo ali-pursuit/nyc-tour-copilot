@@ -59,8 +59,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       }
       onClose();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Authentication failed.');
     } finally {
       setLoading(false);
     }
@@ -73,8 +73,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await signInAnonymously(auth);
       onClose();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Anonymous sign-in failed.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Anonymous sign-in failed.');
     } finally {
       setLoading(false);
     }

@@ -1,19 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { doc, getDoc, deleteDoc, doc as firestoreDoc, setDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import Button from '../components/Button';
-import { FaStar, FaCheckCircle, FaHeart, FaRegHeart, FaMapMarkerAlt, FaEdit, FaUser, FaCalendar, FaTrophy } from 'react-icons/fa';
+import { FaStar, FaCheckCircle, FaHeart, FaRegHeart, FaUser, FaCalendar, FaTrophy } from 'react-icons/fa';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
 
 interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
-  createdAt: any;
+  createdAt: Date | string | null;
 }
 
 interface Place {
@@ -23,6 +22,7 @@ interface Place {
   image: string;
   rating: number;
   visitedDate?: string;
+  description?: string;
 }
 
 const favorites: Place[] = [
@@ -49,24 +49,19 @@ const favorites: Place[] = [
   }
 ];
 
-const visited: Place[] = [
-  {
-    id: '4',
-    name: 'Times Square',
-    category: 'Entertainment',
-    image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800',
-    rating: 4.2,
-    visitedDate: '2024-01-15'
-  },
-  {
-    id: '5',
-    name: 'Brooklyn Bridge',
-    category: 'Landmarks',
-    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800',
-    rating: 4.6,
-    visitedDate: '2024-01-10'
-  }
-];
+// Helper to normalize Firestore data to Place
+function normalizePlace(doc: unknown): Place {
+  const d = doc as Record<string, unknown>;
+  return {
+    id: String(d.id),
+    name: typeof d.name === 'string' ? d.name : '',
+    category: typeof d.category === 'string' ? d.category : Array.isArray(d.category) ? d.category.join(', ') : '',
+    image: typeof d.image === 'string' ? d.image : (typeof d.featuredImage === 'string' ? d.featuredImage : ''),
+    rating: typeof d.rating === 'number' ? d.rating : 0,
+    visitedDate: typeof d.visitedDate === 'string' ? d.visitedDate : undefined,
+    description: typeof d.description === 'string' ? d.description : undefined,
+  };
+}
 
 const Dashboard: React.FC = () => {
   const { user, loading } = useAuth();
@@ -83,15 +78,15 @@ const Dashboard: React.FC = () => {
   ];
 
   const [activeSection, setActiveSection] = useState<'overview' | 'visited' | 'favorites' | 'totalRating' | 'myPlans'>('overview');
-  const [userPlans, setUserPlans] = useState<any[]>([]);
-  const [userVisited, setUserVisited] = useState<any[]>([]);
-  const [userFavorites, setUserFavorites] = useState<any[]>([]);
+  const [userPlans, setUserPlans] = useState<Place[]>([]);
+  const [userVisited, setUserVisited] = useState<Place[]>([]);
+  const [userFavorites, setUserFavorites] = useState<Place[]>([]);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [editProfileData, setEditProfileData] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [editProfileStatus, setEditProfileStatus] = useState<string | null>(null);
   const editProfileModalRef = useRef<HTMLDivElement>(null);
   const [showPlanDetailsModal, setShowPlanDetailsModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Place | null>(null);
 
   // Click outside to close edit profile modal
   useEffect(() => {
@@ -140,8 +135,8 @@ const Dashboard: React.FC = () => {
           const plansSnap = await import('firebase/firestore').then(({ getDocs, collection }) =>
             getDocs(collection(db, `users/${user.uid}/plans`))
           );
-          setUserPlans(plansSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (err) {
+          setUserPlans(plansSnap.docs.map(doc => normalizePlace({ id: doc.id, ...doc.data() })));
+        } catch {
           setUserPlans([]);
         }
       };
@@ -157,8 +152,8 @@ const Dashboard: React.FC = () => {
           const visitedSnap = await import('firebase/firestore').then(({ getDocs, collection }) =>
             getDocs(collection(db, `users/${user.uid}/visited`))
           );
-          setUserVisited(visitedSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (err) {
+          setUserVisited(visitedSnap.docs.map(doc => normalizePlace({ id: doc.id, ...doc.data() })));
+        } catch {
           setUserVisited([]);
         }
       };
@@ -174,33 +169,24 @@ const Dashboard: React.FC = () => {
           const favSnap = await import('firebase/firestore').then(({ getDocs, collection }) =>
             getDocs(collection(db, `users/${user.uid}/favorites`))
           );
-          setUserFavorites(favSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (err) {
+          setUserFavorites(favSnap.docs.map(doc => normalizePlace({ id: doc.id, ...doc.data() })));
+        } catch {
           setUserFavorites([]);
         }
       };
       fetchFavorites();
     }
   }, [user, userFavorites.length]);
-
-  // Helper to add a plan to state after adding in Firestore
-  const addPlanToState = (plan: any) => {
-    setUserPlans((prev) => [...prev, plan]);
-  };
-  // Helper to update profile in state after editing
-  const updateUserProfile = (profile: UserProfile) => {
-    setUserProfile(profile);
-  };
   // Helper to check if a place is favorite
   const isFavorite = (placeId: string) => userFavorites.some(fav => fav.id === placeId);
   // Helper to toggle favorite
-  const toggleFavorite = async (place: any) => {
+  const toggleFavorite = async (place: Place) => {
     const db = getFirestore();
     if (isFavorite(place.id)) {
-      await deleteDoc(firestoreDoc(db, `users/${user.uid}/favorites`, place.id));
+      await deleteDoc(firestoreDoc(db, `users/${user?.uid}/favorites`, place.id));
       setUserFavorites(prev => prev.filter(fav => fav.id !== place.id));
     } else {
-      await setDoc(firestoreDoc(db, `users/${user.uid}/favorites`, place.id), place);
+      await setDoc(firestoreDoc(db, `users/${user?.uid}/favorites`, place.id), place);
       setUserFavorites(prev => [...prev, place]);
     }
   };
@@ -257,7 +243,11 @@ const Dashboard: React.FC = () => {
                 <div>
                   <span className="text-sm text-gray-500">Member Since</span>
                   <p className="font-medium">
-                    {userProfile?.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                    {userProfile?.createdAt
+                      ? (userProfile.createdAt instanceof Date
+                          ? userProfile.createdAt.toLocaleDateString()
+                          : new Date(userProfile.createdAt).toLocaleDateString())
+                      : 'Recently'}
                   </p>
                 </div>
               </div>
@@ -319,7 +309,7 @@ const Dashboard: React.FC = () => {
               {sectionCards.map((card) => (
                 <button
                   key={card.id}
-                  onClick={() => setActiveSection(card.id as any)}
+                  onClick={() => setActiveSection(card.id as 'overview' | 'visited' | 'favorites' | 'totalRating' | 'myPlans')}
                   className={`group bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-shadow duration-300 border-2 ${activeSection === card.id ? 'border-yellow-400' : 'border-transparent'} cursor-pointer`}
                   style={{ outline: 'none' }}
                 >
@@ -353,7 +343,7 @@ const Dashboard: React.FC = () => {
                       <div className="space-y-2">
                         {userVisited.slice(0, 3).map((place) => (
                           <div key={place.id} className="flex items-center p-2 bg-gray-50 rounded-lg">
-                            <img src={place.image || place.featuredImage} alt={place.name} className="w-10 h-10 rounded-lg object-cover mr-3" />
+                            <img src={place.image} alt={place.name} className="w-10 h-10 rounded-lg object-cover mr-3" />
                             <div>
                               <p className="font-medium text-gray-900 text-sm">{place.name}</p>
                               <p className="text-xs text-gray-600">Visited {place.visitedDate}</p>
@@ -382,14 +372,14 @@ const Dashboard: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {userVisited.map((place) => (
                     <div key={place.id} className="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-colors duration-200">
-                      <img src={place.image || place.featuredImage} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
+                      <img src={place.image} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
                       <div className="flex items-center mb-1">
                         <button className="mr-2 text-red-500 hover:text-red-700 focus:outline-none" onClick={() => toggleFavorite(place)} title={isFavorite(place.id) ? 'Remove from Favorites' : 'Add to Favorites'}>
                           {isFavorite(place.id) ? <FaHeart className="text-sm" /> : <FaRegHeart className="text-sm" />}
                         </button>
                         <h4 className="font-semibold text-gray-900 text-sm">{place.name}</h4>
                       </div>
-                      <p className="text-xs text-gray-600 mb-2">{place.category?.join ? place.category.join(', ') : place.category}</p>
+                      <p className="text-xs text-gray-600 mb-2">{place.category}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <FaStar className="text-yellow-400 mr-1 text-xs" />
@@ -414,14 +404,14 @@ const Dashboard: React.FC = () => {
                   {userFavorites.length === 0 && <div className="text-gray-500 col-span-full">No favorites yet.</div>}
                   {userFavorites.map((place) => (
                     <div key={place.id} className="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-colors duration-200">
-                      <img src={place.image || place.featuredImage} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
+                      <img src={place.image} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
                       <div className="flex items-center mb-1">
                         <button className="mr-2 text-red-500 hover:text-red-700 focus:outline-none" onClick={() => user && toggleFavorite(place)} title="Remove from Favorites">
                           <FaHeart className="text-sm" />
                         </button>
                         <h4 className="font-semibold text-gray-900 text-sm">{place.name}</h4>
                       </div>
-                      <p className="text-xs text-gray-600 mb-2">{place.category?.join ? place.category.join(', ') : place.category}</p>
+                      <p className="text-xs text-gray-600 mb-2">{place.category}</p>
                       <div className="flex items-center mb-2">
                         <FaStar className="text-yellow-400 mr-1 text-xs" />
                         <span className="text-xs font-medium">{place.rating}</span>
@@ -444,9 +434,9 @@ const Dashboard: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[...favorites, ...userVisited].map((place) => (
                       <div key={place.id} className="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-colors duration-200">
-                        <img src={place.image || place.featuredImage} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
+                        <img src={place.image} alt={place.name} className="w-full h-24 object-cover rounded-lg mb-2" />
                         <h4 className="font-semibold text-gray-900 mb-1 text-sm">{place.name}</h4>
-                        <p className="text-xs text-gray-600 mb-2">{place.category?.join ? place.category.join(', ') : place.category}</p>
+                        <p className="text-xs text-gray-600 mb-2">{place.category}</p>
                         <div className="flex items-center mb-2">
                           <FaStar className="text-yellow-400 mr-1 text-xs" />
                           <span className="text-xs font-medium">{place.rating}</span>
@@ -464,14 +454,14 @@ const Dashboard: React.FC = () => {
                     {userPlans.length === 0 && <div className="text-gray-500 col-span-full">No plans saved yet.</div>}
                     {userPlans.map((plan) => (
                       <div key={plan.id} className="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-colors duration-200 relative">
-                        <img src={plan.featuredImage} alt={plan.name} className="w-full h-24 object-cover rounded-lg mb-2" />
+                        <img src={plan.image} alt={plan.name} className="w-full h-24 object-cover rounded-lg mb-2" />
                         <div className="flex items-center mb-1">
                           <button className="mr-2 text-red-500 hover:text-red-700 focus:outline-none" onClick={() => toggleFavorite(plan)} title={isFavorite(plan.id) ? 'Remove from Favorites' : 'Add to Favorites'}>
                             {isFavorite(plan.id) ? <FaHeart className="text-sm" /> : <FaRegHeart className="text-sm" />}
                           </button>
                           <h4 className="font-semibold text-gray-900 text-sm">{plan.name}</h4>
                         </div>
-                        <p className="text-xs text-gray-600 mb-2">{plan.category?.join ? plan.category.join(', ') : plan.category}</p>
+                        <p className="text-xs text-gray-600 mb-2">{plan.category}</p>
                         <div className="flex items-center mb-2">
                           <FaStar className="text-yellow-400 mr-1 text-xs" />
                           <span className="text-xs font-medium">{plan.rating}</span>
@@ -556,8 +546,8 @@ const Dashboard: React.FC = () => {
                   });
                   setEditProfileStatus('Profile updated successfully!');
                   setUserProfile((prev) => prev ? { ...prev, ...editProfileData } : prev);
-                } catch (err: any) {
-                  setEditProfileStatus(err.message || 'Failed to update profile.');
+                } catch (err: unknown) {
+                  setEditProfileStatus(err instanceof Error ? err.message : 'Failed to update profile.');
                 }
               }}
               className="space-y-4"
@@ -618,9 +608,9 @@ const Dashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl" onClick={() => { setShowPlanDetailsModal(false); setSelectedPlan(null); }}>&times;</button>
-            <img src={selectedPlan.featuredImage} alt={selectedPlan.name} className="w-full h-40 object-cover rounded-lg mb-4" />
+            <img src={selectedPlan.image} alt={selectedPlan.name} className="w-full h-40 object-cover rounded-lg mb-4" />
             <h2 className="text-2xl font-bold mb-2 text-gray-900">{selectedPlan.name}</h2>
-            <p className="text-sm text-gray-600 mb-2">{selectedPlan.category?.join ? selectedPlan.category.join(', ') : selectedPlan.category}</p>
+            <p className="text-sm text-gray-600 mb-2">{selectedPlan.category}</p>
             <div className="flex items-center mb-2">
               <FaStar className="text-yellow-400 mr-1 text-sm" />
               <span className="text-sm font-medium">{selectedPlan.rating}</span>

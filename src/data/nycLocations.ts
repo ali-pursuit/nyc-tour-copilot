@@ -16,8 +16,8 @@ export interface Location {
   priceRange: string;
   bestTimeToVisit: string;
   tips: string[];
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Date | string | null;
+  updatedAt: Date | string | null;
 }
 
 export const nycLocations: Location[] = [
