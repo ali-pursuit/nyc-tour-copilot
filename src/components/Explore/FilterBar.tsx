@@ -1,12 +1,13 @@
 import React from 'react';
+import Button from '../Button';
 
 const FilterBar: React.FC = () => {
   return (
     <div className="mb-4 flex gap-2">
-      <button className="px-3 py-1 bg-gray-200 rounded">All</button>
-      <button className="px-3 py-1 bg-gray-200 rounded">Parks</button>
-      <button className="px-3 py-1 bg-gray-200 rounded">Museums</button>
-      <button className="px-3 py-1 bg-gray-200 rounded">Hidden Gems</button>
+      <Button variant="outline" size="sm">All</Button>
+      <Button variant="outline" size="sm">Parks</Button>
+      <Button variant="outline" size="sm">Museums</Button>
+      <Button variant="outline" size="sm">Hidden Gems</Button>
     </div>
   );
 };
